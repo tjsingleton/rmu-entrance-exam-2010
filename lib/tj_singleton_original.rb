@@ -12,7 +12,7 @@ unless "".respond_to?('each_char')
 end
 
 module TextEditor
-  class SensibleDocument
+  class Document
     def initialize
       @contents = []
       @snapshots = []
