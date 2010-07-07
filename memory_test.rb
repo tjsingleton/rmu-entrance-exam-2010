@@ -10,14 +10,14 @@ start_mem   = mem_use
 doc         = TextEditor::Document.new
 msg         = "X"
 itterations = [100, 1_000, 10_000, 100_000]
-timeout     = 15
+timeout     = 30
 
 readings = itterations.inject({}) do |accum, n|
   begin
     Timeout::timeout(timeout) do
       n.times { doc.add_text(msg) }
-      # n.times { doc.undo }
-      # n.times { doc.redo }
+      n.times { doc.undo }
+      n.times { doc.redo }
     end
   rescue Timeout::Error
   end
