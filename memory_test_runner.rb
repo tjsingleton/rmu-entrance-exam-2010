@@ -3,11 +3,7 @@
 itterations = [100, 1_000, 10_000, 100_000]
 
 results = Dir["lib/*.rb"].inject({}) do |accum, file|
-  if file == "lib/text_edit_naive.rb"
-    accum
-  else
-    accum[file] = YAML.load(`ruby memory_test.rb #{file}`)
-  end
+  accum[file] = YAML.load(`ruby memory_test.rb #{file}`) unless file == "lib/text_edit_naive.rb"
   accum
 end
 
