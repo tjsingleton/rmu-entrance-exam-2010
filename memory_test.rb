@@ -1,23 +1,27 @@
-require "lib/ali_rizvi_fixed"
+["yaml", "timeout", ARGV[0]].each {|f| require f }
 
-start_time = Time.now
-
-puts "Starting Memory:"
-puts `ps -o rss= -p #{$$}`.to_i
-
-doc  = TextEditor::Document.new
-msg = "X"
-
-[100, 1_000, 10_000, 100_000].each do |x|
-  puts "Adding #{x} characters, 1 at a time"
-
-  x.times do
-    doc.add_text(msg)
-  end
-
-  puts "Current memory footprint:"
-  puts `ps -o rss= -p #{$$}`.to_i
+def mem_use
+  `ps -o rss= -p #{$$}`.to_i
 end
 
+start_time  = Time.now
+start_mem   = mem_use
+doc         = TextEditor::Document.new
+msg         = "X"
+itterations = [100, 1_000, 10_000, 100_000]
+timeout     = 30
 
-puts "Took #{Time.now - start_time}s to run"
+readings = itterations.inject({}) do |accum, n|
+  begin
+    Timeout::timeout(timeout) do
+      n.times { doc.add_text(msg) }
+      n.times { doc.undo }
+      n.times { doc.redo }
+    end
+  rescue Timeout::Error
+  end
+  accum[n] = mem_use
+  accum
+end
+
+puts({:elapsed => Time.now - start_time,  :start_mem => start_mem, :readings => readings}.to_yaml)
