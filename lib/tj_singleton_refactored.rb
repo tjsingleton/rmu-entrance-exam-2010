@@ -3,27 +3,26 @@ module TextEditor
     def initialize
       @contents = ""
       @snapshots = []
+      @reverted = []
     end
 
     attr_accessor :contents
 
     def add_text(text, position=-1)
-      @reverted = false
+      @reverted.clear
       @snapshots << AddEvent.new(@contents, text, position)
     end
 
     def remove_text(first=0, last=contents.length)
-      @reverted = false
+      @reverted.clear
       @snapshots << RemoveEvent.new(@contents, first, last)
     end
 
     def undo
-      @reverted ||= []
       swap_tail(@snapshots, @reverted)
     end
 
     def redo
-      @reverted ||= []
       swap_tail(@reverted, @snapshots)
     end
 
