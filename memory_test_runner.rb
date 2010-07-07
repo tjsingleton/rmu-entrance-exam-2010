@@ -1,47 +1,47 @@
 ["timeout", "yaml", "rubygems", "terminal-table", "terminal-table/import"].each {|f| require f }
 
-itterations = [100, 1_000, 10_000, 100_000]
+def sorted_table(title, headings, _results, &sort_block)
+  results = _results.dup.sort!(&sort_block)
+  results_table = table do |t|
+    t.headings = headings
+    results.each{|result| t << result }
+    (1..ITTERATIONS.length).each {|i| t.align_column(i, :right)}
+  end
+
+  puts title
+  puts results_table
+  puts
+end
+
+def format_result(file, result)
+  name       = file[/lib\/(.*)\.rb/, 1]
+  start_mem  = result[:start_mem]
+  mem_growth = ITTERATIONS.map {|i| result[:readings][i] - start_mem  }
+  final_mem  = result[:readings][ITTERATIONS.last]
+  elapsed    = result[:elapsed]
+
+  [name, start_mem, mem_growth, final_mem, elapsed].flatten
+end
+
+def run_test(file)
+  print "Running #{file}... "
+  result = YAML.load(`ruby memory_test.rb #{file}`)
+  puts result.inspect
+  result
+end
+
+ITTERATIONS = [100, 1_000, 10_000, 100_000]
 ignored_files = ["lib/text_edit_naive.rb"]
+table_headings = ['Name', 'Start Mem', ITTERATIONS, 'Final Mem', 'Time'].flatten
+STDOUT.sync = true
 
-results = Dir["lib/*.rb"].inject([]) do |accum, file|
+rows = Dir["lib/*.rb"].inject([]) do |accum, file|
   unless ignored_files.include?(file)
-    result = YAML.load(`ruby memory_test.rb #{file}`)
-
-    name       = file[/lib\/(.*)\.rb/, 1]
-    start_mem  = result[:start_mem]
-    mem_growth = itterations.map {|i| result[:readings][i] - start_mem  }
-    final_mem  = result[:readings][itterations.last]
-    elapsed    = result[:elapsed]
-
-    accum << [name, start_mem, *mem_growth, final_mem, elapsed]
+    accum << format_result(file, run_test(file))
   end
   accum
 end
 
-results.sort! do |a, b|
-  a[7] <=> b[7]
-end
-
-
-results_table = table do |t|
-  t.headings = ['Name', 'Start Mem', *itterations, 'Final Mem', 'Time']
-  results.each{|result| t << result }
-end
-
-puts "By elapsed time"
-puts results_table
-
-
-results.sort! do |a, b|
-  a[6] <=> b[6]
-end
-
-
-results_table = table do |t|
-  t.headings = ['Name', 'Start Mem', *itterations, 'Final Mem', 'Time']
-  results.each{|result| t << result }
-end
-
-
-puts "By elapsed time"
-puts results_table
+puts
+sorted_table("By elasped time", table_headings, rows) {|a, b| a[7] <=> b[7] }
+sorted_table("By final mem", table_headings, rows) {|a, b| a[6] <=> b[6] }
