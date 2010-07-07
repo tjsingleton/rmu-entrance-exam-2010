@@ -1,5 +1,5 @@
 abort("I like to hang in macruby") if defined? MACRUBY_VERSION
-
+$LOAD_PATH.unshift("#{File.dirname(__FILE__)}")
 ["timeout", "yaml", "rubygems", "terminal-table", "terminal-table/import"].each {|f| require f }
 
 def sorted_table(title, headings, _results, &sort_block)

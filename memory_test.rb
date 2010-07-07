@@ -1,3 +1,4 @@
+$LOAD_PATH.unshift("#{File.dirname(__FILE__)}")
 ["yaml", "timeout", ARGV[0]].each {|f| require f }
 
 def mem_use
